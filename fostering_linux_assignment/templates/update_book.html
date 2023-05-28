@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Book</title>
+</head>
+<body>
+    <h1>Update Book</h1>
+    <form method="POST" action="{% url 'update_book' book.id %}">
+        {% csrf_token %}
+        <label for="title">Title:</label>
+        <input type="text" name="title" value="{{ book.title }}" required><br>
+        <label for="description">Description:</label>
+        <textarea name="description" required>{{ book.description }}</textarea><br>
+        <label for="pageCount">Page Count:</label>
+        <input type="number" name="pageCount" value="{{ book.pageCount }}" required><br>
+        <label for="excerpt">Excerpt:</label>
+        <textarea name="excerpt" required>{{ book.excerpt }}</textarea><br>
+        <label for="publishDate">Publish Date:</label>
+        <input type="date" name="publishDate" value="{{ book.publishDate|date:'Y-m-d' }}" required><br>
+        <input type="submit" value="Update">
+    </form>
+</body>
+</html>

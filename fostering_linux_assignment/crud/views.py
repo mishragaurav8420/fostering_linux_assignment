@@ -64,6 +64,47 @@ def create_book(request):
     # Handle the case when the request method is GET
     return render(request, 'create_book.html')
 
+
+
+def update_book(request, book_id):
+    if request.method == 'POST':
+        # Extract updated book data from the request
+        book_data = {
+            "id": book_id,
+            "title": request.POST.get("title"),
+            "description": request.POST.get("description"),
+            "pageCount": request.POST.get("pageCount"),
+            "excerpt": request.POST.get("excerpt"),
+            "publishDate": request.POST.get("publishDate"),
+        }
+
+        # Send a PUT request to the external API to update the book record
+        url = f"https://fakerestapi.azurewebsites.net/api/v1/Books/{book_id}"
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        response = requests.put(url, json=book_data, headers=headers)
+
+        if response.status_code == 200:
+            updated_book = response.json()
+            return render(request, 'update_book.html', {'updated_book': updated_book})
+        else:
+            error_message = {"error": "Failed to update the book"}
+            return render(request, 'update_book.html', {'error_message': error_message})
+
+    # Fetch the existing book data and populate the form
+    url = f"https://fakerestapi.azurewebsites.net/api/v1/Books/{book_id}"
+    headers = {"accept": "text/plain; v=1.0"}
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        book_data = response.json()
+        return render(request, 'update_book.html', {'book': book_data})
+    else:
+        error_message = 'Failed to fetch the book'
+        return render(request, 'update_book.html', {'error_message': error_message})
+
 def delete_book(request, book_id):
     if request.method == 'POST':
         url = f"https://fakerestapi.azurewebsites.net/api/v1/Books/{book_id}"
