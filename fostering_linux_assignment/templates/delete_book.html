@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Book</title>
+</head>
+<body>
+    <h1>Delete Book</h1>
+    <p>Are you sure you want to delete this book?</p>
+    <form method="POST" action="{% url 'delete_book' book_id=book_id %}">
+        {% csrf_token %}
+        <input type="submit" value="Delete">
+    </form>
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+</body>
+</html>

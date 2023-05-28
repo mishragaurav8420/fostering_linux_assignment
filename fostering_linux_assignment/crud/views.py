@@ -1,54 +1,81 @@
-import requests
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse
-
-def get_movies(request):
-    if request.method == 'GET':
-        # Make GET request to movie API to retrieve all movies
-        response = requests.get('https://my-json-server.typicode.com/horizon-code-academy/fake-movies-api/movies')
-
-        if response.status_code == 200:
-            movie_data = response.json()
-            return JsonResponse({'movies': movie_data}, status=200)
-        else:
-            return JsonResponse({'error': 'Failed to retrieve movies'}, status=400)
-
-    # Handle the case when the request method is not GET
-    return HttpResponse('Method Not Allowed', status=405)
-
-
+from django.shortcuts import render,redirect
+from rest_framework.decorators import api_view
 from django.shortcuts import render, redirect
 import requests
 
-def create_movie(request):
+def get_books(request):
+    # Get book data from external API
+    url = "https://fakerestapi.azurewebsites.net/api/v1/Books"
+    headers = {"accept": "text/plain; v=1.0"}
+    response = requests.get(url, headers=headers)
+    books_data = response.json()
+
+    context = {
+        'books': books_data
+    }
+    return render(request, 'books.html', context)
+
+def get_book_by_id(request):
     if request.method == 'POST':
-        movie_data = {
-            "Title": request.POST.get('Title'),
-            "Year": request.POST.get('Year'),
-            "Runtime": request.POST.get('Runtime'),
-            "Poster": request.POST.get('Poster'),
-            # Include other movie details
+        book_id = request.POST.get('id')
+        url = f"https://fakerestapi.azurewebsites.net/api/v1/Books/{book_id}"
+        headers = {
+            "accept": "text/plain;v=1.0"
+        }
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            book_data = response.json()
+            return render(request, 'book_detail.html', {'book': book_data})
+        else:
+            error_message = 'Failed to fetch the book'
+            return render(request, 'get_book.html', {'error_message': error_message})
+
+    return render(request, 'get_book.html')
+
+@api_view(['GET', 'POST'])
+def create_book(request):
+    if request.method == 'POST':
+        # Extract book data from the request
+        book_data = {
+            "id": request.POST.get("id"),
+            "title": request.POST.get("title"),
+            "description": request.POST.get("description"),
+            "pageCount": request.POST.get("pageCount"),
+            "excerpt": request.POST.get("excerpt"),
+            "publishDate": request.POST.get("publishDate"),
         }
 
-        # Make POST request to movie API
-        response = requests.post('https://my-json-server.typicode.com/horizon-code-academy/fake-movies-api/movies', json=movie_data)
+        # Send a POST request to the external API to create a book record
+        url = "https://fakerestapi.azurewebsites.net/api/v1/Books"
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(url, json=book_data, headers=headers)
 
         if response.status_code == 201:
-            created_movie = response.json()
-            return JsonResponse({'message': 'Movie created successfully', 'movie': created_movie}, status=201)
+            created_book = response.json()
+            return render(request, 'create_book.html', {'created_book': created_book})
         else:
-            return JsonResponse({'error': 'Failed to create movie'}, status=400)
+            error_message = {"error": "Failed to create the book"}
+            return render(request, 'create_book.html', {'error_message': error_message})
 
     # Handle the case when the request method is GET
-    return render(request, 'create_movie.html')
+    return render(request, 'create_book.html')
 
-def retrieve_weather(request):
-    if request.method == 'GET':
-        city = request.GET.get('city')
-        # Make GET request to weather API
-        response = requests.get(f'https://api.weatherapi.com/v1/weather?q={city}', params={'key': 'YOUR_WEATHER_API_KEY'})
+def delete_book(request, book_id):
+    if request.method == 'POST':
+        url = f"https://fakerestapi.azurewebsites.net/api/v1/Books/{book_id}"
+        headers = {
+            "accept": "*/*"
+        }
+        response = requests.delete(url, headers=headers)
+
         if response.status_code == 200:
-            weather_data = response.json()
-            return JsonResponse({'weather': weather_data}, status=200)
+            return redirect('get_books')
         else:
-            return JsonResponse({'error': 'Failed to retrieve weather information'}, status=400)
+            error_message = 'Failed to delete the book'
+            return render(request, 'delete_book.html', {'book_id': book_id, 'error_message': error_message})
+
+    return render(request, 'delete_book.html', {'book_id': book_id})

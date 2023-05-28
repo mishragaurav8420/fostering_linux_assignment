@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get Book</title>
+</head>
+<body>
+    <h1>Get a Book by ID</h1>
+    <form method="POST" action="{% url 'get_book' %}">
+        {% csrf_token %}
+        <label for="id">ID:</label>
+        <input type="text" name="id" required><br>
+        <input type="submit" value="Get">
+    </form>
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% endif %}
+</body>
+</html>
